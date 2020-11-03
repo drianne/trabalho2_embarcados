@@ -1,0 +1,21 @@
+distribuido: 
+	gcc main.c ../inc/bme/bme280.c \
+	    ./modules/i2c/i2c_module.c \
+		./modules/gpio/gpio_module.c \
+		-I ../inc/bme \
+		-lpthread \
+		-lwiringPi \
+		-lbcm2835 \
+		-o distribuido
+
+central: 
+	gcc main.c ../inc/bme/bme280.c \
+	    ./modules/i2c/i2c_module.c \
+		./modules/gpio/gpio_module.c \
+		-I ../inc/bme \
+		-lpthread \
+		-lwiringPi \
+		-lbcm2835 \
+		-o central
+
+gcc main.c ../inc/bme/bme280.c ./modules/i2c/i2c_module.c ./modules/gpio/gpio_module.c -I ../inc/bme -lpthread -lwiringPi -lbcm2835 -o trabalho2
