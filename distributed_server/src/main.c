@@ -52,6 +52,7 @@ void* Servidor(void* arg){
     /*Buffer de entrada (armazena buffer do cliente)*/
     char buffer_do_cliente[256];
 	int tamanhoRecebido;
+	char codigo [128];
     /*Cast do ponteiro*/
     int sockEntrada = *(int *) arg;
     /*Loop "infinito"*/
@@ -67,6 +68,44 @@ void* Servidor(void* arg){
 		if((tamanhoRecebido = recv(sockEntrada, buffer_do_cliente, 16, 0)) < 0)
 			printf("Erro no recv()\n");
 
+		// Trata acionamento de aparelhos
+		if (strcmp(buffer_do_cliente,COD_ACIONA_LAMP_COZINHA)){
+			init_gpio();
+			turn_lamp_cozinha(ON);
+		}else if (strcmp(buffer_do_cliente,COD_ACIONA_LAMP_SALA)){
+			init_gpio();
+			turn_lamp_sala(ON);
+		}else if (strcmp(buffer_do_cliente,COD_ACIONA_LAMP_QUARTO_1)){
+			init_gpio();
+			turn_lamp_quarto_1(ON); 
+		}else if(strcmp(buffer_do_cliente,COD_ACIONA_LAMP_QUARTO_2)){
+			init_gpio();
+			turn_lamp_quarto_2(ON);
+		}else if (strcmp(buffer_do_cliente,COD_ACIONA_AR_QUARTO_1)){
+			init_gpio();
+			turn_air_quarto_1(ON);
+		}else if (strcmp(buffer_do_cliente,COD_ACIONA_AR_QUARTO_2)){
+			init_gpio();
+			turn_air_quarto_2(ON);
+		}else if (strcmp(buffer_do_cliente,COD_DESLIGA_LAMP_COZINHA)){
+			init_gpio();
+			turn_lamp_cozinha(OFF);
+		}else if (strcmp(buffer_do_cliente,COD_DESLIGA_LAMP_SALA)){
+			init_gpio();
+			turn_lamp_sala(OFF);
+		}else if (strcmp(buffer_do_cliente,COD_DESLIGA_LAMP_QUARTO_1)){
+			init_gpio();
+			turn_lamp_quarto_1(OFF); 
+		}else if(strcmp(buffer_do_cliente,COD_DESLIGA_LAMP_QUARTO_2)){
+			init_gpio();
+			turn_lamp_quarto_2(OFF);
+		}else if (strcmp(buffer_do_cliente,COD_DESLIGA_AR_QUARTO_1)){
+			init_gpio();
+			turn_air_quarto_1(ON);
+		}else if (strcmp(buffer_do_cliente,COD_DESLIGA_AR_QUARTO_2)){
+			init_gpio();
+			turn_air_quarto_2(OFF);
+		}		
 	}
 }
 
@@ -161,10 +200,6 @@ void envia_dado(){
 		Cliente(data_status);
 	}
 
-}
-
-void atualiza_dados(){
-	
 }
 
 int main(int argc, char *argv[]) {

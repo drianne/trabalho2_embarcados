@@ -14,32 +14,6 @@
 
 struct Dados aparelhos_dados;
 
-// void aciona_aparelhos(int aparelho){
-// 	switch (aparelho){
-
-// 	case COD_ACIONA_LAMP_COZINHA:
-// 		Cliente(COD_ACIONA_LAMP_COZINHA);
-// 		break;
-// 	case COD_ACIONA_LAMP_SALA:
-// 		Cliente(COD_ACIONA_LAMP_SALA);
-// 		break;
-// 	case COD_ACIONA_LAMP_QUARTO_1:
-// 		Cliente(COD_ACIONA_LAMP_QUARTO_1);
-// 		break;
-// 	case COD_ACIONA_LAMP_QUARTO_2:
-// 		Cliente(COD_ACIONA_LAMP_QUARTO_2);
-// 		break;
-// 	case COD_ACIONA_AR_QUARTO_1:
-// 		Cliente(COD_ACIONA_AR_QUARTO_1);
-// 		break;
-// 	case COD_ACIONA_AR_QUARTO_2:
-// 		Cliente(COD_ACIONA_AR_QUARTO_2);
-// 		break;	
-// 	default:
-// 		break;
-// 	}
-// }
-
 int configuracaoCliente(){
   int socketCliente;
   struct sockaddr_in servidorAddr;
@@ -63,7 +37,7 @@ void Cliente(char *mensagem){
   struct sockaddr_in servidorAddr;
   int bytesRecebidos;
   int totalBytesRecebidos;
-  char received_message[256];
+  char buffer[1024];
 
   socketCliente = configuracaoCliente();
   tamanhoMensagem = strlen(mensagem);
@@ -74,18 +48,18 @@ void Cliente(char *mensagem){
   totalBytesRecebidos = 0;
 
 	while(totalBytesRecebidos < tamanhoMensagem) {
-		if((bytesRecebidos = recv(socketCliente, received_message, 16-1, 0)) <= 0)
+		if((bytesRecebidos = recv(socketCliente, buffer, 1024-1, 0)) <= 0)
 			printf("Não recebeu o total de bytes enviados\n");
 		totalBytesRecebidos += bytesRecebidos;
-		received_message[bytesRecebidos] = '\0';
-		printf("%s\n", received_message);
+		buffer[bytesRecebidos] = '\0';
+		printf("%s\n", buffer);
 	}
 	close(socketCliente);
 
 	return;
 }
 
-void* Servidor(void* arg){
+void *Servidor(void* arg){
     /*Buffer de entrada (armazena buffer do cliente)*/
 
 	int status;
@@ -123,8 +97,6 @@ void* Servidor(void* arg){
 		if((tamanhoRecebido = recv(sockEntrada, buffer_do_cliente, 1024, 0)) < 0)
 			printf("Erro no recv()\n");
 		
-		printf("%s", buffer_do_cliente);
-
 		cJSON *dados_json = cJSON_ParseWithLength(buffer_do_cliente, strlen(buffer_do_cliente));
 
 		if (dados_json == NULL){
@@ -192,6 +164,25 @@ void* Servidor(void* arg){
 						aparelhos_dados.lamp_4_gpio_22_quarto_2 = lamp_4_gpio_22_quarto_2->valueint;
 						aparelhos_dados.air_1_gpio_23_quarto_1 = air_1_gpio_23_quarto_1->valueint;
 						aparelhos_dados.air_2_gpio_24_quarto_2 = air_2_gpio_24_quarto_2->valueint;
+
+
+						printf("\n\n===================== ATUALIZAÇÃO DE DADOS ====================");
+						printf("\n Umidade: %lf", humidity->valuedouble);
+						printf("\n Temperatura: %lf", temperature->valuedouble);
+						printf("\n Sensor presença sala 1: %d", sensor_pre_1_gpio_25_sala->valueint);
+						printf("\n Sensor presença sala 2: %d", sensor_pre_2_gpio_26_sala->valueint);
+						printf("\n Sensor abertura porta cozinha: %d", sensor_aber_1_gpio_5_porta_cozinha->valueint);
+						printf("\n Sensor abertura janela cozinha: %d", sensor_aber_2_gpio_6_janela_cozinha->valueint);
+						printf("\n Sensor abertura porta sala: %d", sensor_aber_3_gpio_12_porta_sala->valueint);
+						printf("\n Sensor abertura janela sala: %d", sensor_aber_4_gpio_16_janela_sala->valueint);
+						printf("\n Sensor abertura janela quarto 1: %d", sensor_aber_5_gpio_20_janela_quarto_1->valueint); 
+						printf("\n Sensor abertura janela quarto 2: %d", sensor_aber_6_gpio_21_janela_quarto_2->valueint); 
+						printf("\n Lâmpada cozinha: %d", lamp_1_gpio_17_cozinha->valueint);
+						printf("\n Lâmpada sala: %d", lamp_2_gpio_18_sala->valueint);
+						printf("\n Lâmpada quarto 1: %d", lamp_3_gpio_27_quarto_1->valueint);
+						printf("\n Lâmpada quarto 2: %d", lamp_4_gpio_22_quarto_2->valueint);
+						printf("\n Ar condicionado quarto 1: %d", air_1_gpio_23_quarto_1->valueint);
+						printf("\n Ar condicionado quarto 2: %d\n\n", air_2_gpio_24_quarto_2->valueint);
 					}
 					
 					break;		
@@ -228,37 +219,104 @@ int configuracaoServidor(){
 	return servidorSocket;
 }
 
-int menu(int *op){
-	printf("\n\n\n11 - Ligar lâmpada da cozinha        10 - Desligar lâmpada da cozinha\n");
-	printf("21 - Ligar lâmpada da sala           20 - Desligar lâmpada da sala\n");
-	printf("31 - Ligar lâmpada do quarto 1       30 - Desligar lâmpada do quarto 1\n");
-	printf("41 - Ligar lâmpada do quarto 2       40 - Desligar lâmpada do quarto 2\n");
-	printf("51 - Ligar ar-condicionado quarto 1  50 - Desligar ar-condicionado quarto 1\n");
-	printf("61 - Ligar ar-condicionado quarto 2  60 - Desligar ar-condicionado quarto 2\n");
-	printf("2 - Ver dados sensores");
-	scanf(">> %d", &op);
+void menu(){
+	int op;
+
+	printf("\n\n\n11 - Acionar estado lâmpada da cozinha \n");
+	printf("21 - Acionar lâmpada da sala          \n");
+	printf("31 - Acionar lâmpada do quarto 1      \n");
+	printf("41 - Acionar lâmpada do quarto 2      \n");
+	printf("51 - Acionar ar-condicionado quarto 1 \n");
+	printf("61 - Acionar ar-condicionado quarto 2 \n");
+	printf("12 - Desligar lâmpada da sala          \n");
+	printf("13 - Desligar lâmpada do quarto 1      \n");
+	printf("14 - Desligar lâmpada do quarto 2      \n");
+	printf("15 - Desligar ar-condicionado quarto 1 \n");
+	printf("16 - Desligar ar-condicionado quarto 2 \n");
+	printf("17 - Acionar estado lâmpada da cozinha \n");
+	scanf("\n>> %d", &op);
+
+	switch (op){
+	case 11:
+		Cliente(COD_ACIONA_LAMP_COZINHA);
+		break;	
+	case 21:
+		Cliente(COD_ACIONA_LAMP_SALA);
+		break;
+	case 31:
+		Cliente(COD_ACIONA_LAMP_QUARTO_1);
+		break;	
+	case 41:
+		Cliente(COD_ACIONA_LAMP_QUARTO_2);
+		break;
+	case 51:
+		Cliente(COD_ACIONA_AR_QUARTO_1);
+		break;	
+	case 61:
+		Cliente(COD_ACIONA_AR_QUARTO_2);
+		break;
+	case 12:
+		Cliente(COD_DESLIGA_LAMP_SALA);
+		break;
+	case 13:
+		Cliente(COD_DESLIGA_LAMP_QUARTO_1);
+		break;	
+	case 14:
+		Cliente(COD_DESLIGA_LAMP_QUARTO_2);
+		break;
+	case 15:
+		Cliente(COD_DESLIGA_AR_QUARTO_1);
+		break;	
+	case 16:
+		Cliente(COD_DESLIGA_AR_QUARTO_2);
+		break;
+	case 17:
+		Cliente(COD_DESLIGA_LAMP_COZINHA);
+		break;	
+	default:
+		break;
+	}
+}
+
+int print_dados(){
+	// while(1){
+	// 	sleep(1);
+	// 	printf("\n\n===================== ATUALIZAÇÃO DE DADOS ====================");
+	// 	printf("\n %d", aparelhos_dados->humidity);
+	// 	printf("\n %d", aparelhos_dados->temperature);
+	// 	printf("\n %d", aparelhos_dados->sensor_pre_1_gpio_25_sala);
+	// 	printf("\n %d", aparelhos_dados->sensor_pre_2_gpio_26_sala);
+	// 	printf("\n %d", aparelhos_dados->sensor_aber_1_gpio_5_porta_cozinha);
+	// 	printf("\n %d", aparelhos_dados->sensor_aber_2_gpio_6_janela_cozinha);
+	// 	printf("\n %d", aparelhos_dados->sensor_aber_3_gpio_12_porta_sala);
+	// 	printf("\n %d", aparelhos_dados->sensor_aber_4_gpio_16_janela_sala);
+	// 	printf("\n %d", aparelhos_dados->sensor_aber_5_gpio_20_janela_quarto_1); 
+	// 	printf("\n %d", aparelhos_dados->sensor_aber_6_gpio_21_janela_quarto_2); 
+	// 	printf("\n %d", aparelhos_dados->lamp_1_gpio_17_cozinha);
+	// 	printf("\n %d", aparelhos_dados->lamp_2_gpio_18_sala);
+	// 	printf("\n %d", aparelhos_dados->lamp_3_gpio_27_quarto_1);
+	// 	printf("\n %d", aparelhos_dados->lamp_4_gpio_22_quarto_2);
+	// 	printf("\n %d", aparelhos_dados->air_1_gpio_23_quarto_1);
+	// 	printf("\n %d\n\n", aparelhos_dados->air_2_gpio_24_quarto_2);
+	// 	fflush(stdout);
+	// }	
 }
 
 int main(int argc, char *argv[]) {
-	int servidorSocket, socketCliente, op;	
+	int servidorSocket, socketCliente;	
 
 	struct sockaddr_in servidorAddr;
 	struct sockaddr_in clienteAddr;
 	unsigned short servidorPorta;
 	unsigned int clienteLength;	
 
-	pthread_t thread_server, thread_menu, thread_dados;	
-
-	// Cliente("Teste");
-
-	// pthread_create(&thread_dados, NULL, get_data, &aparelhos_dados);
+	pthread_t thread_server, thread_menu, thread_dados;		
 
 	// Servidor 
 	servidorSocket = configuracaoServidor();
 
 	while(1) {
-
-		if (pthread_create(&thread_menu, NULL, menu, &op)){
+		if (pthread_create(&thread_menu, NULL, menu, NULL)){
 			printf("Erro na Thread\n");
 			exit(1);
 		}
@@ -275,8 +333,10 @@ int main(int argc, char *argv[]) {
 		if (pthread_create(&thread_server, NULL, Servidor, &socketCliente) != 0){
 			printf("Erro na Thread\n");
 			exit(1);
-		}
+		}		
 	}
 	pthread_join(thread_server, NULL);	
+	pthread_join(thread_menu, NULL);
+	pthread_join(thread_dados, NULL);
 	close(servidorSocket);
 }
