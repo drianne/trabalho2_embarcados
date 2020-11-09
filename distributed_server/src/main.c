@@ -27,6 +27,8 @@ struct Aparelhos aparelhos_values;
 void trata_interrupcao(int sinal) {
     // start_resistor(OFF);
     // start_fan(OFF);
+	system("pkill omxplayer");
+	
     bcm2835_close();
     // endwin();
     exit(0);
@@ -101,7 +103,7 @@ void* Servidor(void* arg){
 			turn_lamp_quarto_2(OFF);
 		}else if (strcmp(buffer_do_cliente,COD_DESLIGA_AR_QUARTO_1)){
 			init_gpio();
-			turn_air_quarto_1(ON);
+			turn_air_quarto_1(OFF);
 		}else if (strcmp(buffer_do_cliente,COD_DESLIGA_AR_QUARTO_2)){
 			init_gpio();
 			turn_air_quarto_2(OFF);
@@ -147,7 +149,6 @@ void Cliente(char *mensagem){
 			printf("Não recebeu o total de bytes enviados\n");
 		totalBytesRecebidos += bytesRecebidos;
 		buffer[bytesRecebidos] = '\0';
-		printf("%s\n", buffer);
 	}
 	close(socketCliente);
 
@@ -180,13 +181,38 @@ int configuracaoServidor(){
 	return servidorSocket;
 }
 
+#define SENSOR_PRE_1_GPIO_25_SALA RPI_V2_GPIO_P1_22 // PIN 22
+#define SENSOR_PRE_2_GPIO_26_SALA  RPI_V2_GPIO_P1_37 // PIN 37
+
+#define SENSOR_ABER_1_GPIO_5_PORTA_COZINHA RPI_V2_GPIO_P1_29 // PIN 29
+#define SENSOR_ABER_2_GPIO_6_JANELA_COZINHA RPI_V2_GPIO_P1_31 // PIN 31
+#define SENSOR_ABER_3_GPIO_12_PORTA_SALA RPI_V2_GPIO_P1_32 // PIN 32
+#define SENSOR_ABER_4_GPIO_16_JANELA_SALA RPI_V2_GPIO_P1_36 // PIN 36
+#define SENSOR_ABER_5_GPIO_20_JANELA_QUARTO_1 RPI_V2_GPIO_P1_38 // PIN 38
+#define SENSOR_ABER_6_GPIO_21_JANELA_QUARTO_2 RPI_V2_GPIO_P1_40 // PIN 40
+
+void liga_alarme(){
+	while(1){
+		sleep(1);
+		char *data = (char *)malloc(1024*sizeof(char));
+		if (sensor_values.sensor_pre_1_gpio_25_sala == 1 || sensor_values.sensor_pre_2_gpio_26_sala == 1||
+		    sensor_values.sensor_aber_1_gpio_5_porta_cozinha == 1|| sensor_values.sensor_aber_2_gpio_6_janela_cozinha == 1 ||
+			sensor_values.sensor_aber_3_gpio_12_porta_sala == 1 ||  sensor_values.sensor_aber_4_gpio_16_janela_sala == 1 ||
+			sensor_values.sensor_aber_5_gpio_20_janela_quarto_1 == 1 || sensor_values.sensor_aber_6_gpio_21_janela_quarto_2 == 1){
+			
+			sprintf(data, "{\"cod\": %s}", COD_ACIONA_ALARME);
+			fflush(stdout);
+			Cliente(data);
+		}		
+	}
+}
+
 void envia_dado(){
 	while(1){
 		sleep(1);
 
 		char *data_status = (char *)malloc(1024*sizeof(char));
-
-		sprintf(data_status, "{\"cod\": %d, \"temperatura\": %f, \"umidade\": %f, \"sensor_pre_1_gpio_25_sala\": %d, \"sensor_pre_2_gpio_26_sala\": %d, \"sensor_aber_1_gpio_5_porta_cozinha\": %d, \"sensor_aber_2_gpio_6_janela_cozinha\": %d, \"sensor_aber_3_gpio_12_porta_sala\": %d, \"sensor_aber_4_gpio_16_janela_sala\": %d, \"sensor_aber_5_gpio_20_janela_quarto_1\": %d, \"sensor_aber_6_gpio_21_janela_quarto_2\": %d, \"lamp_1_gpio_17_cozinha\": %d, \"lamp_2_gpio_18_sala\": %d, \"lamp_3_gpio_27_quarto_1\": %d, \"lamp_4_gpio_22_quarto_2\": %d, \"air_1_gpio_23_quarto_1\": %d, \"air_2_gpio_24_quarto_2\": %d}", 
+		sprintf(data_status, "{\"cod\": %s, \"temperatura\": %f, \"umidade\": %f, \"sensor_pre_1_gpio_25_sala\": %d, \"sensor_pre_2_gpio_26_sala\": %d, \"sensor_aber_1_gpio_5_porta_cozinha\": %d, \"sensor_aber_2_gpio_6_janela_cozinha\": %d, \"sensor_aber_3_gpio_12_porta_sala\": %d, \"sensor_aber_4_gpio_16_janela_sala\": %d, \"sensor_aber_5_gpio_20_janela_quarto_1\": %d, \"sensor_aber_6_gpio_21_janela_quarto_2\": %d, \"lamp_1_gpio_17_cozinha\": %d, \"lamp_2_gpio_18_sala\": %d, \"lamp_3_gpio_27_quarto_1\": %d, \"lamp_4_gpio_22_quarto_2\": %d, \"air_1_gpio_23_quarto_1\": %d, \"air_2_gpio_24_quarto_2\": %d}", 
 				COD_PEGA_DADO, i2c_values.temperature, 
 				i2c_values.humidity, sensor_values.sensor_pre_1_gpio_25_sala,
 				sensor_values.sensor_pre_2_gpio_26_sala, sensor_values.sensor_aber_1_gpio_5_porta_cozinha, sensor_values.sensor_aber_2_gpio_6_janela_cozinha,
@@ -203,7 +229,7 @@ void envia_dado(){
 }
 
 int main(int argc, char *argv[]) {
-  pthread_t I2c_thread, Gpio_thread, aparelhos_thread, tCsv, tMenu, thread_data, sensor_thread, thread_server;
+  pthread_t I2c_thread, Gpio_thread, aparelhos_thread, tCsv, tMenu, thread_data, sensor_thread, alarm_thread, thread_server;
   
   // Servidor
   int servidorSocket;
@@ -213,12 +239,15 @@ int main(int argc, char *argv[]) {
   unsigned short servidorPorta;
   unsigned int clienteLength;	
 
+  signal(SIGINT, trata_interrupcao);
+
   init_gpio();
   
   pthread_create(&sensor_thread, NULL, control_sensors, &sensor_values);
   pthread_create(&aparelhos_thread, NULL, control_aparelhos, &aparelhos_values);
   pthread_create(&I2c_thread, NULL, temperature_humidity_i2c, &i2c_values);
   pthread_create(&thread_data, NULL, envia_dado, NULL);
+  pthread_create(&thread_server, NULL, liga_alarme, NULL);  
 
   // Servidor
   servidorSocket = configuracaoServidor();
@@ -240,6 +269,7 @@ int main(int argc, char *argv[]) {
 
 	}
 	pthread_join(sensor_thread, NULL);
+	pthread_join(liga_alarme, NULL);
 	pthread_join(thread_server, NULL);	
 	pthread_join(thread_data, NULL);
 	pthread_join(I2c_thread, NULL);

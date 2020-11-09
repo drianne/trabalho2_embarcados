@@ -75,18 +75,14 @@ int get_sensor_aber_janela_quarto_2(){
 
 void init_gpio(){
     if (!bcm2835_init())
-        exit(1);
-    
-    printf("Setting pins configuration\n\n");
-    settings_pins();
-    printf("Initing execution\n\n");
+        exit(1);  
 }
 
 void *control_sensors(void *params){
     struct Sensores *sensores = params;   
 
     while(1){
-        printf("Setting sensors values");
+        // printf("Setting sensors values");
         sensores->sensor_pre_1_gpio_25_sala = get_sensor_pre_1_sala();
         sensores->sensor_pre_2_gpio_26_sala = get_sensor_pre_2_sala();
         sensores->sensor_aber_1_gpio_5_porta_cozinha = get_sensor_aber_porta_cozinha();
@@ -96,15 +92,15 @@ void *control_sensors(void *params){
         sensores->sensor_aber_5_gpio_20_janela_quarto_1 = get_sensor_aber_janela_quarto_1();
         sensores->sensor_aber_6_gpio_21_janela_quarto_2 = get_sensor_aber_janela_quarto_2();
         
-        printf("\n\nMostrando valores");
-        printf("\nPresença 1 SALA: %d", sensores->sensor_pre_1_gpio_25_sala);
-        printf("\nPresença 2 SALA: %d", sensores->sensor_pre_2_gpio_26_sala);
-        printf("\nAbertura Porta Cozinha: %d" , sensores->sensor_aber_1_gpio_5_porta_cozinha);
-        printf("\nAbertura Janela Cozinha: %d" , sensores->sensor_aber_2_gpio_6_janela_cozinha);
-        printf("\nAbertura Porta Sala: %d" , sensores->sensor_aber_3_gpio_12_porta_sala);
-        printf("\nAbertura Janela Sala: %d" , sensores->sensor_aber_4_gpio_16_janela_sala);
-        printf("\nAbertura Janela Quarto 1: %d" , sensores->sensor_aber_5_gpio_20_janela_quarto_1);
-        printf("\nAbertura Janela Quarto 2: %d\n\n" , sensores->sensor_aber_6_gpio_21_janela_quarto_2);
+        // printf("\n\nMostrando valores");
+        // printf("\nPresença 1 SALA: %d", sensores->sensor_pre_1_gpio_25_sala);
+        // printf("\nPresença 2 SALA: %d", sensores->sensor_pre_2_gpio_26_sala);
+        // printf("\nAbertura Porta Cozinha: %d" , sensores->sensor_aber_1_gpio_5_porta_cozinha);
+        // printf("\nAbertura Janela Cozinha: %d" , sensores->sensor_aber_2_gpio_6_janela_cozinha);
+        // printf("\nAbertura Porta Sala: %d" , sensores->sensor_aber_3_gpio_12_porta_sala);
+        // printf("\nAbertura Janela Sala: %d" , sensores->sensor_aber_4_gpio_16_janela_sala);
+        // printf("\nAbertura Janela Quarto 1: %d" , sensores->sensor_aber_5_gpio_20_janela_quarto_1);
+        // printf("\nAbertura Janela Quarto 2: %d\n\n" , sensores->sensor_aber_6_gpio_21_janela_quarto_2);
         fflush(stdout);
        
         sleep(1);
@@ -115,7 +111,6 @@ void *control_aparelhos(void *params){
     struct Aparelhos *aparelhos = params;
 
     while(1){
-        printf("Setting aparelhos values");
         aparelhos->lamp_1_gpio_17_cozinha = get_sensor_pre_1_sala();
         aparelhos->lamp_2_gpio_18_sala = get_sensor_pre_2_sala();
         aparelhos->lamp_3_gpio_27_quarto_1 = get_sensor_aber_porta_cozinha();
@@ -123,13 +118,13 @@ void *control_aparelhos(void *params){
         aparelhos->air_1_gpio_23_quarto_1 = get_sensor_aber_porta_sala();
         aparelhos->air_2_gpio_24_quarto_2 = get_sensor_aber_janela_sala();
         
-        printf("\n\nMostrando valores aparelhos");
-        printf("\nLâmpada da cozinha: %d",  aparelhos->lamp_1_gpio_17_cozinha);
-        printf("\nLâmpada da SALA: %d", aparelhos->lamp_2_gpio_18_sala);
-        printf("\nLâmpada quarto 1: %d" , aparelhos->lamp_3_gpio_27_quarto_1);
-        printf("\nLâmpada quarto 2: %d" , aparelhos->lamp_4_gpio_22_quarto_2);
-        printf("\nAr quarto 1: %d" , aparelhos->air_1_gpio_23_quarto_1);
-        printf("\nAr quarto 02: %d" ,  aparelhos->air_2_gpio_24_quarto_2);
+        // printf("\n\nMostrando valores aparelhos");
+        // printf("\nLâmpada da cozinha: %d",  aparelhos->lamp_1_gpio_17_cozinha);
+        // printf("\nLâmpada da SALA: %d", aparelhos->lamp_2_gpio_18_sala);
+        // printf("\nLâmpada quarto 1: %d" , aparelhos->lamp_3_gpio_27_quarto_1);
+        // printf("\nLâmpada quarto 2: %d" , aparelhos->lamp_4_gpio_22_quarto_2);
+        // printf("\nAr quarto 1: %d" , aparelhos->air_1_gpio_23_quarto_1);
+        // printf("\nAr quarto 02: %d" ,  aparelhos->air_2_gpio_24_quarto_2);
         fflush(stdout);
        
         sleep(1);

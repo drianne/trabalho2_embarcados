@@ -27,12 +27,12 @@ int configuracaoCliente(){
   
   if(connect(socketCliente, (struct sockaddr *) &servidorAddr, 
 							sizeof(servidorAddr)) < 0)
-		printf("Erro no connect()\n");
+		printf("\n\n!!!!!!!!!!!!!!!! Erro no connect() !!!!!!!!!!!!!!!!!!!1\n");
 
   return socketCliente;
 }
 
-void Cliente(char *mensagem){
+char *Cliente(char *mensagem){
   int socketCliente, servidorSocket, serverLength, tamanhoMensagem;
   struct sockaddr_in servidorAddr;
   int bytesRecebidos;
@@ -40,11 +40,13 @@ void Cliente(char *mensagem){
   char buffer[1024];
 
   socketCliente = configuracaoCliente();
+
+  printf("kjdhakjdhsksjha");
   tamanhoMensagem = strlen(mensagem);
 
   if(send(socketCliente, mensagem, tamanhoMensagem, 0) != tamanhoMensagem)
 		printf("Erro no envio: numero de bytes enviados diferente do esperado\n");
-
+ 
   totalBytesRecebidos = 0;
 
 	while(totalBytesRecebidos < tamanhoMensagem) {
@@ -52,11 +54,20 @@ void Cliente(char *mensagem){
 			printf("Não recebeu o total de bytes enviados\n");
 		totalBytesRecebidos += bytesRecebidos;
 		buffer[bytesRecebidos] = '\0';
-		printf("%s\n", buffer);
+		printf("Dado recebido%s\n", buffer);
 	}
 	close(socketCliente);
 
-	return;
+	return buffer;
+}
+
+void trata_interrupcao(int sinal) {
+	system("pkill omxplayer");
+}
+
+void tocar_alarm(){
+	printf("\n\nTocando alarme");
+	system("omxplayer --no-keys alarm.mp3");
 }
 
 void *Servidor(void* arg){
@@ -82,9 +93,8 @@ void *Servidor(void* arg){
 	const cJSON *air_2_gpio_24_quarto_2 = NULL;
     char buffer_do_cliente[1024];
 	int tamanhoRecebido;
-    /*Cast do ponteiro*/
+
     int sockEntrada = *(int *) arg;	
-    /*Loop "infinito"*/
     printf("Aguardando as mensagens...\n\n");
 
 	if((tamanhoRecebido = recv(sockEntrada, buffer_do_cliente, 1024, 0)) < 0)
@@ -97,6 +107,7 @@ void *Servidor(void* arg){
 		if((tamanhoRecebido = recv(sockEntrada, buffer_do_cliente, 1024, 0)) < 0)
 			printf("Erro no recv()\n");
 		
+		printf("Dados: %s",buffer_do_cliente );
 		cJSON *dados_json = cJSON_ParseWithLength(buffer_do_cliente, strlen(buffer_do_cliente));
 
 		if (dados_json == NULL){
@@ -109,9 +120,8 @@ void *Servidor(void* arg){
 		}
 		
 		cod = cJSON_GetObjectItemCaseSensitive(dados_json, "cod");
-
+		
 		if (cJSON_IsNumber(cod)){
-			
 			switch (cod->valueint){
 				case 1:
 					humidity = cJSON_GetObjectItemCaseSensitive(dados_json, "umidade");
@@ -185,7 +195,11 @@ void *Servidor(void* arg){
 						printf("\n Ar condicionado quarto 2: %d\n\n", air_2_gpio_24_quarto_2->valueint);
 					}
 					
-					break;		
+					break;	
+				case 2:
+					printf("Recebeu necessidade de acionar alarme");
+					tocar_alarm();
+					break;	
 				default:
 					break;
 			}
@@ -222,59 +236,61 @@ int configuracaoServidor(){
 void menu(){
 	int op;
 
-	printf("\n\n\n11 - Acionar estado lâmpada da cozinha \n");
-	printf("21 - Acionar lâmpada da sala          \n");
-	printf("31 - Acionar lâmpada do quarto 1      \n");
-	printf("41 - Acionar lâmpada do quarto 2      \n");
-	printf("51 - Acionar ar-condicionado quarto 1 \n");
-	printf("61 - Acionar ar-condicionado quarto 2 \n");
-	printf("12 - Desligar lâmpada da sala          \n");
-	printf("13 - Desligar lâmpada do quarto 1      \n");
-	printf("14 - Desligar lâmpada do quarto 2      \n");
-	printf("15 - Desligar ar-condicionado quarto 1 \n");
-	printf("16 - Desligar ar-condicionado quarto 2 \n");
-	printf("17 - Acionar estado lâmpada da cozinha \n");
-	scanf("\n>> %d", &op);
+	while(1){
+		printf("\n\n\n11 - Acionar estado lâmpada da cozinha \n");
+		printf("21 - Acionar lâmpada da sala          \n");
+		printf("31 - Acionar lâmpada do quarto 1      \n");
+		printf("41 - Acionar lâmpada do quarto 2      \n");
+		printf("51 - Acionar ar-condicionado quarto 1 \n");
+		printf("61 - Acionar ar-condicionado quarto 2 \n");
+		printf("12 - Desligar lâmpada da sala          \n");
+		printf("13 - Desligar lâmpada do quarto 1      \n");
+		printf("14 - Desligar lâmpada do quarto 2      \n");
+		printf("15 - Desligar ar-condicionado quarto 1 \n");
+		printf("16 - Desligar ar-condicionado quarto 2 \n");
+		printf("17 -  Desligar da cozinha \n");
+		scanf("%d", &op);
 
-	switch (op){
-	case 11:
-		Cliente(COD_ACIONA_LAMP_COZINHA);
-		break;	
-	case 21:
-		Cliente(COD_ACIONA_LAMP_SALA);
-		break;
-	case 31:
-		Cliente(COD_ACIONA_LAMP_QUARTO_1);
-		break;	
-	case 41:
-		Cliente(COD_ACIONA_LAMP_QUARTO_2);
-		break;
-	case 51:
-		Cliente(COD_ACIONA_AR_QUARTO_1);
-		break;	
-	case 61:
-		Cliente(COD_ACIONA_AR_QUARTO_2);
-		break;
-	case 12:
-		Cliente(COD_DESLIGA_LAMP_SALA);
-		break;
-	case 13:
-		Cliente(COD_DESLIGA_LAMP_QUARTO_1);
-		break;	
-	case 14:
-		Cliente(COD_DESLIGA_LAMP_QUARTO_2);
-		break;
-	case 15:
-		Cliente(COD_DESLIGA_AR_QUARTO_1);
-		break;	
-	case 16:
-		Cliente(COD_DESLIGA_AR_QUARTO_2);
-		break;
-	case 17:
-		Cliente(COD_DESLIGA_LAMP_COZINHA);
-		break;	
-	default:
-		break;
+		switch (op){
+			case 11:
+				Cliente(COD_ACIONA_LAMP_COZINHA);
+				break;	
+			case 21:
+				Cliente(COD_ACIONA_LAMP_SALA);
+				break;
+			case 31:
+				Cliente(COD_ACIONA_LAMP_QUARTO_1);
+				break;	
+			case 41:
+				Cliente(COD_ACIONA_LAMP_QUARTO_2);
+				break;
+			case 51:
+				Cliente(COD_ACIONA_AR_QUARTO_1);
+				break;	
+			case 61:
+				Cliente(COD_ACIONA_AR_QUARTO_2);
+				break;
+			case 12:
+				Cliente(COD_DESLIGA_LAMP_SALA);
+				break;
+			case 13:
+				Cliente(COD_DESLIGA_LAMP_QUARTO_1);
+				break;	
+			case 14:
+				Cliente(COD_DESLIGA_LAMP_QUARTO_2);
+				break;
+			case 15:
+				Cliente(COD_DESLIGA_AR_QUARTO_1);
+				break;	
+			case 16:
+				Cliente(COD_DESLIGA_AR_QUARTO_2);
+				break;
+			case 17:
+				Cliente(COD_DESLIGA_LAMP_COZINHA);
+				break;	
+			default:
+				break;
+			}
 	}
 }
 
@@ -312,15 +328,15 @@ int main(int argc, char *argv[]) {
 
 	pthread_t thread_server, thread_menu, thread_dados;		
 
+	if (pthread_create(&thread_menu, NULL, menu, NULL)){
+		printf("Erro na Thread\n");
+		exit(1);
+	}
+
 	// Servidor 
 	servidorSocket = configuracaoServidor();
 
 	while(1) {
-		if (pthread_create(&thread_menu, NULL, menu, NULL)){
-			printf("Erro na Thread\n");
-			exit(1);
-		}
-
 		clienteLength = sizeof(clienteAddr);
 
 		if((socketCliente = accept(servidorSocket, 

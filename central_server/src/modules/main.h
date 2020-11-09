@@ -13,6 +13,8 @@
 #define COD_DESLIGA_AR_QUARTO_1 "321"
 #define COD_DESLIGA_AR_QUARTO_2 "422"
 
+#define COD_ACIONA_ALARME "2"
+
 struct I2cValue{
     double temperature;
     double humidity;

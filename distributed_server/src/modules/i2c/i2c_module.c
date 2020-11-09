@@ -149,8 +149,8 @@ int8_t stream_sensor_data_forced_mode(struct bme280_dev *dev, struct I2cValue *i
         i2c_values->temperature = comp_data.temperature;
         i2c_values->humidity = comp_data.humidity;
 
-        printf("Temperatura: %f\n", i2c_values->temperature );
-        printf("Umidade: %f\n", i2c_values->humidity );
+        // printf("Temperatura: %f\n", i2c_values->temperature );
+        // printf("Umidade: %f\n", i2c_values->humidity );
         sleep(1);
     }
 
