@@ -49,6 +49,7 @@ Para instalar é preciso clonar o projeto e na rasp, dentro da pasta trabalhos2_
 - Mecanismo para acionamento de dispositivos
 - Leitura e armazenamento dos valores de temperatura / umidade a cada 1 segundo.
 - Correto acionamento de lâmpadas e aparelhos de ar-condicionado pelo comando do Servidor Central.
+- Manter o estado dos sensores de presença / abertura de portas/janelas informando ao servidor central imediatamente (mensagem push) quando detectar o acionamento de qualquer um deles
 
 #### Limitações
 
@@ -59,4 +60,5 @@ Para instalar é preciso clonar o projeto e na rasp, dentro da pasta trabalhos2_
 #### Problemas Conhecidos
 
 - Execução de threads está impedindo a execução correta do menu com coleta de opção selecionada
+- Tratamento de alguns erros
 - Não possui menu dividido
