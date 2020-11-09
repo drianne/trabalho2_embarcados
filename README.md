@@ -37,6 +37,8 @@ Descrever no README do repositório o modo de instalação/execução e o modo d
 
 Para instalar é preciso clonar o projeto e na rasp, dentro da pasta trabalhos2_embarcados:
 
+* Executar primeiro o servidor central 
+
 1. Compilar o servidor: make distribuido ou make central
 2. Realizar a execução dos executáveis nas devidas rasps com ./distribuido ou ./central 
 
